@@ -5,25 +5,86 @@
 }
 
 :root {
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --bg-primary: #f8f9fa;
-    --bg-secondary: #ffffff;
-    --text-primary: #1a1a1a;
-    --text-secondary: #6b7280;
+    --primary: #8b5cf6;
+    --primary-dark: #7c3aed;
+    --primary-light: #a78bfa;
+    --secondary: #ec4899;
+    --accent: #f59e0b;
     --success: #10b981;
     --danger: #ef4444;
-    --border-radius: 12px;
-    --transition: all 0.3s ease;
-    --border: #e5e7eb;
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-card: rgba(30, 41, 59, 0.8);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --border: rgba(148, 163, 184, 0.2);
+    --glow: 0 0 20px rgba(139, 92, 246, 0.5);
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background-color: var(--bg-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease infinite;
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
+    min-height: 100vh;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
 }
 
 /* Common Styles */
@@ -31,23 +92,45 @@ body {
     max-width: 100%;
     padding: 8px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .card {
-    background-color: var(--bg-secondary);
+    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(30, 41, 59, 0.6) 100%);
+    backdrop-filter: blur(10px);
     border-radius: var(--border-radius);
     padding: 24px;
     border: 1px solid var(--border);
     transition: var(--transition);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.card:hover::before {
+    left: 100%;
 }
 
 .card:hover {
     border-color: var(--primary);
-    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3), var(--glow);
+    transform: translateY(-4px);
 }
 
 .button {
-    padding: 8px 16px;
+    padding: 12px 24px;
     border: none;
     border-radius: var(--border-radius);
     font-size: 14px;
@@ -57,75 +140,117 @@ body {
     text-decoration: none;
     display: inline-block;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.button:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .button-primary {
-    background-color: var(--primary);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
 }
 
 .button-primary:hover {
-    background-color: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6), var(--glow);
+    transform: translateY(-2px) scale(1.02);
 }
 
 .button-secondary {
-    background-color: var(--bg-secondary);
+    background: rgba(30, 41, 59, 0.8);
     color: var(--text-primary);
     border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
 }
 
 .button-secondary:hover {
-    background-color: var(--bg-primary);
+    background: rgba(51, 65, 85, 0.8);
+    border-color: var(--primary);
+    transform: translateY(-2px);
 }
 
 .button-small {
-    padding: 6px 12px;
+    padding: 8px 16px;
     font-size: 12px;
 }
 
 .button-success {
-    background-color: var(--success);
+    background: linear-gradient(135deg, var(--success), #059669);
     color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
 }
 
 .button-success:hover {
-    background-color: #059669;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    transform: translateY(-2px) scale(1.02);
 }
 
 .button-danger {
-    background-color: var(--danger);
+    background: linear-gradient(135deg, var(--danger), #dc2626);
     color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
 }
 
 .button-danger:hover {
-    background-color: #dc2626;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+    transform: translateY(-2px) scale(1.02);
 }
 
 .button:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
     transform: none !important;
+    filter: grayscale(1);
+}
+
+.button:disabled:hover {
+    box-shadow: none;
+    transform: none !important;
+}
+
+.button:disabled::before {
+    display: none;
 }
 
 input[type="text"],
 input[type="email"] {
     width: 100%;
-    padding: 12px 16px;
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border);
+    padding: 14px 18px;
+    background: rgba(15, 23, 42, 0.5);
+    border: 2px solid var(--border);
     border-radius: var(--border-radius);
     color: var(--text-primary);
     font-size: 16px;
     transition: var(--transition);
+    backdrop-filter: blur(10px);
 }
 
 input[type="text"]:focus,
 input[type="email"]:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2), var(--glow);
+    background: rgba(15, 23, 42, 0.7);
+    transform: scale(1.02);
 }
 
 /* Screens */
@@ -161,21 +286,29 @@ input[type="email"]:focus {
 
 .name-entry .card {
     width: 100%;
-    max-width: 400px;
+    max-width: 450px;
+    animation: float 3s ease-in-out infinite;
 }
 
 .name-entry h1 {
-    font-size: 32px;
-    margin-bottom: 8px;
-    background: linear-gradient(135deg, var(--primary), #ec4899);
+    font-size: 48px;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    font-weight: 800;
+    text-align: center;
+    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5));
 }
 
 .name-entry p {
     color: var(--text-secondary);
     margin-bottom: 24px;
+    text-align: center;
+    font-size: 16px;
 }
 
 .form-group {
@@ -203,12 +336,20 @@ input[type="email"]:focus {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 32px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border);
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
 }
 
 .home-header h1 {
-    font-size: 28px;
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .user-info {
@@ -219,20 +360,24 @@ input[type="email"]:focus {
 }
 
 .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    background-color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
+    font-size: 20px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    animation: pulse 2s ease-in-out infinite;
 }
 
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
     margin-bottom: 32px;
 }
 
@@ -240,6 +385,7 @@ input[type="email"]:focus {
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .game-card::before {
@@ -249,7 +395,7 @@ input[type="email"]:focus {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), transparent);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
     opacity: 0;
     transition: var(--transition);
 }
@@ -258,41 +404,65 @@ input[type="email"]:focus {
     opacity: 1;
 }
 
+.game-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(139, 92, 246, 0.4), var(--glow);
+}
+
 .game-icon {
-    font-size: 48px;
+    font-size: 64px;
     margin-bottom: 16px;
+    animation: float 3s ease-in-out infinite;
+    display: inline-block;
+    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5));
+}
+
+.game-card:hover .game-icon {
+    animation: pulse 1s ease-in-out infinite;
 }
 
 .game-card h3 {
-    font-size: 22px;
-    margin-bottom: 8px;
+    font-size: 26px;
+    margin-bottom: 12px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .game-card p {
     color: var(--text-secondary);
-    font-size: 14px;
-    margin-bottom: 16px;
+    font-size: 15px;
+    margin-bottom: 20px;
+    line-height: 1.6;
 }
 
 .game-progress {
-    background-color: var(--bg-primary);
-    border-radius: 8px;
-    height: 6px;
-    margin-bottom: 12px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 12px;
+    height: 8px;
+    margin-bottom: 16px;
     overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .game-progress-bar {
     height: 100%;
-    background-color: var(--primary);
-    transition: var(--transition);
+    background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
 }
 
 .game-stats {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-secondary);
+    font-weight: 600;
 }
 
 /* Game Screen */
@@ -300,59 +470,82 @@ input[type="email"]:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-    gap: 8px;
+    margin-bottom: 20px;
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    gap: 12px;
 }
 
 .game-title {
-    font-size: 18px;
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .game-status {
     display: flex;
-    gap: 12px;
-    font-size: 12px;
+    gap: 16px;
+    font-size: 13px;
 }
 
 .status-item {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
+    padding: 8px 12px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 8px;
+    border: 1px solid var(--border);
 }
 
 .status-label {
     color: var(--text-secondary);
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 600;
 }
 
 .status-value {
     font-weight: 700;
-    color: var(--primary);
-    font-size: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 14px;
 }
 
 .back-button {
-    background: none;
-    border: none;
-    color: var(--primary);
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid var(--border);
+    color: var(--primary-light);
     cursor: pointer;
-    font-size: 20px;
+    font-size: 24px;
+    padding: 8px 16px;
+    border-radius: 12px;
     transition: var(--transition);
+    backdrop-filter: blur(5px);
 }
 
 .back-button:hover {
-    color: var(--primary-dark);
+    background: rgba(139, 92, 246, 0.3);
+    transform: translateX(-4px);
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
 }
 
 .maze-container {
-    background-color: var(--bg-secondary);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+    backdrop-filter: blur(10px);
     border-radius: var(--border-radius);
-    padding: 12px;
+    padding: 16px;
     border: 1px solid var(--border);
     margin-bottom: 16px;
     overflow-x: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .word-grid {
@@ -367,11 +560,12 @@ input[type="email"]:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--bg-primary);
-    border: 1px solid var(--border);
-    border-radius: 4px;
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(5px);
+    border: 2px solid var(--border);
+    border-radius: 8px;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 11px;
     font-weight: 600;
     padding: 1px;
@@ -379,39 +573,48 @@ input[type="email"]:focus {
     word-wrap: break-word;
     position: relative;
     max-width: 50px;
-    /* max-height: 50px; */
+    color: var(--text-primary);
 }
 
 .word-cell:hover:not(.word-cell.disabled) {
-    background-color: #f3f4f6;
+    background: rgba(139, 92, 246, 0.2);
     border-color: var(--primary);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
 }
 
 .word-cell.selected {
-    background-color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     border-color: var(--primary);
     color: white;
-    box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.8), var(--glow);
+    transform: scale(1.1);
+    font-weight: 700;
 }
 
 .word-cell.valid {
     border-color: var(--success);
-    background-color: rgba(16, 185, 129, 0.1);
+    background: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
 }
 
 .word-cell.path {
-    background-color: rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.4));
     border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+    animation: pulse 1.5s ease-in-out infinite;
 }
 
 .word-cell.start {
     border-color: var(--primary);
-    box-shadow: inset 0 0 0 2px var(--primary);
+    box-shadow: inset 0 0 0 2px var(--primary), 0 0 15px rgba(139, 92, 246, 0.6);
+    animation: pulse 2s ease-in-out infinite;
 }
 
 .word-cell.end {
     border-color: var(--success);
-    box-shadow: inset 0 0 0 2px var(--success);
+    box-shadow: inset 0 0 0 2px var(--success), 0 0 15px rgba(16, 185, 129, 0.6);
+    animation: pulse 2s ease-in-out infinite;
 }
 
 .word-cell.disabled {
@@ -420,8 +623,15 @@ input[type="email"]:focus {
 }
 
 .word-cell.incorrect {
-    background-color: rgba(239, 68, 68, 0.2);
+    background: rgba(239, 68, 68, 0.3);
     border-color: var(--danger);
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
 }
 
 .maze-controls {
@@ -437,31 +647,36 @@ input[type="email"]:focus {
 }
 
 .path-display {
-    background-color: var(--bg-primary);
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(5px);
     border-radius: var(--border-radius);
-    padding: 8px;
-    margin-bottom: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
     border: 1px solid var(--border);
-    min-height: 30px;
+    min-height: 40px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 6px;
-    font-size: 12px;
+    gap: 8px;
+    font-size: 13px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .path-word {
-    background-color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+    animation: fadeIn 0.3s ease;
 }
 
 .path-arrow {
-    color: var(--text-secondary);
-    font-size: 10px;
+    color: var(--primary-light);
+    font-size: 12px;
+    font-weight: 700;
 }
 
 /* Game Result Screen */
@@ -473,42 +688,61 @@ input[type="email"]:focus {
     min-height: 100vh;
     padding: 16px;
     text-align: center;
+    animation: fadeIn 0.5s ease;
 }
 
 .result-card {
     width: 100%;
-    max-width: 500px;
+    max-width: 550px;
+    animation: float 3s ease-in-out infinite;
 }
 
 .result-icon {
-    font-size: 80px;
-    margin-bottom: 16px;
+    font-size: 100px;
+    margin-bottom: 24px;
+    animation: pulse 1.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
 }
 
 .result-title {
-    font-size: 28px;
-    margin-bottom: 8px;
+    font-size: 36px;
+    margin-bottom: 16px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .result-message {
     color: var(--text-secondary);
     margin-bottom: 32px;
-    font-size: 16px;
+    font-size: 18px;
+    line-height: 1.6;
 }
 
 .result-stats {
-    background-color: var(--bg-primary);
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(10px);
     border-radius: var(--border-radius);
-    padding: 20px;
-    margin-bottom: 24px;
+    padding: 24px;
+    margin-bottom: 32px;
     border: 1px solid var(--border);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .result-stat {
     display: flex;
     justify-content: space-between;
-    padding: 12px 0;
+    padding: 16px 0;
     border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.result-stat:hover {
+    padding-left: 8px;
 }
 
 .result-stat:last-child {
@@ -517,11 +751,17 @@ input[type="email"]:focus {
 
 .result-stat-label {
     color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 15px;
 }
 
 .result-stat-value {
     font-weight: 700;
-    color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 16px;
 }
 
 .result-buttons {
@@ -540,24 +780,31 @@ input[type="email"]:focus {
 }
 
 .history-item {
-    background-color: var(--bg-secondary);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+    backdrop-filter: blur(10px);
     border-radius: var(--border-radius);
-    padding: 16px;
-    margin-bottom: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
     border: 1px solid var(--border);
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .history-item:hover {
     border-color: var(--primary);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3), var(--glow);
+    transform: translateX(8px);
 }
 
 .history-date {
     font-weight: 700;
-    margin-bottom: 8px;
-    color: var(--primary);
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 15px;
 }
 
 .history-stats {
@@ -706,7 +953,6 @@ input[type="email"]:focus {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    background-color: var(--bg-primary);
     padding: 20px 0;
 }
 
@@ -714,15 +960,24 @@ input[type="email"]:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
+    padding: 20px;
+    margin: 0 20px 20px 20px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
 }
 
 .wordle-title {
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: 4px;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: 6px;
     margin: 0;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.3));
 }
 
 .wordle-back-btn {
@@ -761,28 +1016,30 @@ input[type="email"]:focus {
 
 .wordle-error-message {
     position: fixed;
-    top: 80px;
+    top: 100px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #d32f2f;
+    background: linear-gradient(135deg, var(--danger), #dc2626);
     color: white;
-    padding: 12px 24px;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
     z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    animation: slideDown 0.2s ease-out;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4), 0 0 20px rgba(239, 68, 68, 0.3);
+    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
 }
 
 @keyframes slideDown {
     from {
         opacity: 0;
-        transform: translateX(-50%) translateY(-10px);
+        transform: translateX(-50%) translateY(-20px) scale(0.9);
     }
     to {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transform: translateX(-50%) translateY(0) scale(1);
     }
 }
 
@@ -815,34 +1072,47 @@ input[type="email"]:focus {
 .wordle-tile {
     width: 60px;
     height: 60px;
-    border: 2px solid #d3d3d3;
-    border-radius: 4px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 32px;
     font-weight: 700;
-    background-color: #ffffff;
-    color: #1a1a1a;
-    transition: all 0.2s ease;
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(5px);
+    color: var(--text-primary);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .wordle-tile.correct {
-    background-color: #6aaa64;
-    border-color: #6aaa64;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
     color: white;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+    animation: flip 0.5s ease;
 }
 
 .wordle-tile.present {
-    background-color: #c9b458;
-    border-color: #c9b458;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #f59e0b;
     color: white;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+    animation: flip 0.5s ease;
 }
 
 .wordle-tile.absent {
-    background-color: #787c7e;
-    border-color: #787c7e;
-    color: white;
+    background: rgba(51, 65, 85, 0.8);
+    border-color: #475569;
+    color: #94a3b8;
+    animation: flip 0.5s ease;
+}
+
+@keyframes flip {
+    0% { transform: rotateX(0); }
+    50% { transform: rotateX(90deg); }
+    100% { transform: rotateX(0); }
 }
 
 /* Wordle Keyboard */
@@ -862,47 +1132,57 @@ input[type="email"]:focus {
 }
 
 .wordle-key {
-    padding: 10px;
-    min-width: 40px;
-    height: 40px;
-    border: none;
-    border-radius: 4px;
-    background-color: #d3d3d3;
-    color: #1a1a1a;
+    padding: 16px;
+    min-width: 50px;
+    height: 58px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(51, 65, 85, 0.8);
+    backdrop-filter: blur(5px);
+    color: var(--text-primary);
     cursor: pointer;
-    font-weight: 600;
-    font-size: 12px;
-    transition: all 0.1s ease;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     text-transform: uppercase;
     font-family: inherit;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .wordle-key:hover:not(:disabled) {
-    background-color: #bbb;
+    background: rgba(71, 85, 105, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .wordle-key.correct {
-    background-color: #6aaa64;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
     color: white;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
 }
 
 .wordle-key.present {
-    background-color: #c9b458;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #f59e0b;
     color: white;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
 }
 
 .wordle-key.absent {
-    background-color: #787c7e;
-    color: white;
+    background: rgba(30, 41, 59, 0.8);
+    border-color: #334155;
+    color: #64748b;
 }
 
 .wordle-key.unused {
-    background-color: #d3d3d3;
-    color: #1a1a1a;
+    background: rgba(51, 65, 85, 0.8);
+    color: var(--text-primary);
 }
 
 .wordle-special-key {
-    min-width: 50px;
+    min-width: 65px;
+    font-size: 14px;
 }
 
 .wordle-key:disabled {
@@ -915,15 +1195,27 @@ input[type="email"]:focus {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #ffffff;
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
     padding: 40px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6), var(--glow);
     text-align: center;
     z-index: 1000;
-    animation: slideIn 0.3s ease;
-    border: 1px solid #ddd;
+    animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid var(--border);
     max-width: 90%;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
 }
 
 .wordle-result-content {
@@ -933,15 +1225,23 @@ input[type="email"]:focus {
 }
 
 .wordle-result h3 {
-    font-size: 32px;
+    font-size: 36px;
     margin-bottom: 16px;
     margin-top: 0;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .wordle-result p {
     color: var(--text-secondary);
     margin-bottom: 24px;
-    font-size: 16px;
+    font-size: 18px;
+    line-height: 1.6;
 }
 
 .wordle-result-buttons {

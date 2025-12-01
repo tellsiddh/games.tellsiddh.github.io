@@ -642,7 +642,7 @@ class GameApp {
         });
         keyboardHtml += `<div class="wordle-keyboard-row">
             <button class="wordle-key wordle-special-key" data-action="handleWordleKey" data-param="Backspace">⌫</button>
-            <button class="wordle-key wordle-special-key" data-action="handleWordleKey" data-param="Enter" ${game.gameOver || (game.guesses.length > 0 && game.guesses[game.guesses.length - 1]?.length === 5) ? '' : 'disabled'}>Enter</button>
+            <button class="wordle-key wordle-special-key" data-action="handleWordleKey" data-param="Enter" ${game.currentInput.length === 5 ? '' : 'disabled'}>Enter</button>
         </div></div>`;
 
         this.render(`
