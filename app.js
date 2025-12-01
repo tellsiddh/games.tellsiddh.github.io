@@ -1,10 +1,92 @@
+// Wordle Game Class
+class WordleGame {
+    constructor() {
+        this.word = wordleData.getDailyWord();
+        this.guesses = [];
+        this.gameOver = false;
+        this.won = false;
+    }
+
+    makeGuess(guess) {
+        if (this.gameOver || this.guesses.length >= 6 || guess.length !== 5) {
+            return false;
+        }
+
+        guess = guess.toUpperCase();
+
+        if (!wordleData.isValidWord(guess)) {
+            return false;
+        }
+
+        this.guesses.push(guess);
+
+        if (guess === this.word) {
+            this.gameOver = true;
+            this.won = true;
+            return true;
+        }
+
+        if (this.guesses.length >= 6) {
+            this.gameOver = true;
+            this.won = false;
+        }
+
+        return true;
+    }
+
+    getLetterStatus(guess, index) {
+        const letter = guess[index];
+        const wordLetters = this.word.split('');
+        const guessLetters = guess.split('');
+
+        // Correct position
+        if (letter === this.word[index]) {
+            return 'correct';
+        }
+
+        // Wrong position
+        if (this.word.includes(letter)) {
+            return 'present';
+        }
+
+        // Not in word
+        return 'absent';
+    }
+
+    getKeyboardStatus() {
+        const status = {};
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+        alphabet.forEach(letter => {
+            status[letter] = 'unused';
+        });
+
+        this.guesses.forEach(guess => {
+            guess.split('').forEach((letter, index) => {
+                const currentStatus = this.getLetterStatus(guess, index);
+                if (currentStatus === 'correct') {
+                    status[letter] = 'correct';
+                } else if (currentStatus === 'present' && status[letter] !== 'correct') {
+                    status[letter] = 'present';
+                } else if (status[letter] === 'unused') {
+                    status[letter] = 'absent';
+                }
+            });
+        });
+
+        return status;
+    }
+}
+
 // Main Application
-class WordMazeApp {
+class GameApp {
     constructor() {
         this.currentScreen = 'name-entry';
         this.userName = storage.get('userName');
+        this.currentGameType = null; // 'wordmaze' or 'wordle'
         this.currentLevel = 1;
         this.currentGame = null;
+        this.wordleGame = null;
         this.selectedPath = [];
         this.lastIncorrectPath = null;
         this.isDragging = false;
@@ -12,12 +94,23 @@ class WordMazeApp {
         this.init();
     }
 
-    init() {
+    async init() {
         // Register Service Worker for PWA
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => {
                 console.log('Service Worker registration failed:', err);
             });
+        }
+
+        // Initialize Wordle word data - WAIT for it to complete
+        try {
+            console.log('🔄 Starting to load Wordle word list...');
+            await wordleData.initialize();
+            console.log(`✓ Wordle initialized with ${wordleData.validWords.size} words`);
+        } catch (err) {
+            console.error('❌ Failed to initialize Wordle data:', err);
+            wordleData.loadFallbackValidWords();
+            console.log('⚠ Using fallback word list');
         }
 
         if (this.userName) {
@@ -42,7 +135,7 @@ class WordMazeApp {
             
             // Handle word cell clicks
             const cell = e.target.closest('.word-cell');
-            if (cell && this.currentScreen === 'game') {
+            if (cell && this.currentScreen === 'game' && this.currentGameType === 'wordmaze') {
                 const row = parseInt(cell.dataset.row);
                 const col = parseInt(cell.dataset.col);
                 this.selectWord(`${row},${col}`);
@@ -53,7 +146,7 @@ class WordMazeApp {
         let mouseDownCell = null;
         document.addEventListener('mousedown', (e) => {
             const cell = e.target.closest('.word-cell');
-            if (cell && this.currentScreen === 'game') {
+            if (cell && this.currentScreen === 'game' && this.currentGameType === 'wordmaze') {
                 mouseDownCell = cell;
                 const row = parseInt(cell.dataset.row);
                 const col = parseInt(cell.dataset.col);
@@ -62,7 +155,7 @@ class WordMazeApp {
         });
 
         document.addEventListener('mousemove', (e) => {
-            if (mouseDownCell && this.currentScreen === 'game' && this.dragStart) {
+            if (mouseDownCell && this.currentScreen === 'game' && this.currentGameType === 'wordmaze' && this.dragStart) {
                 const currentCell = e.target.closest('.word-cell');
                 // Only activate drag if user moved to a different cell
                 if (currentCell && currentCell !== mouseDownCell) {
@@ -84,7 +177,7 @@ class WordMazeApp {
         let touchStartCell = null;
         document.addEventListener('touchstart', (e) => {
             const cell = e.target.closest('.word-cell');
-            if (cell && this.currentScreen === 'game') {
+            if (cell && this.currentScreen === 'game' && this.currentGameType === 'wordmaze') {
                 touchStartCell = cell;
                 const row = parseInt(cell.dataset.row);
                 const col = parseInt(cell.dataset.col);
@@ -93,7 +186,7 @@ class WordMazeApp {
         });
 
         document.addEventListener('touchmove', (e) => {
-            if (touchStartCell && this.currentScreen === 'game') {
+            if (touchStartCell && this.currentScreen === 'game' && this.currentGameType === 'wordmaze') {
                 const touch = e.touches[0];
                 const element = document.elementFromPoint(touch.clientX, touch.clientY);
                 const cell = element.closest('.word-cell');
@@ -158,13 +251,16 @@ class WordMazeApp {
 
     showHome() {
         this.currentScreen = 'home';
-        const gameStats = storage.get(`gameStats_1`, { levelsSolved: 0, timesPlayed: 0, bestTime: null });
-        const solvePercentage = gameStats.levelsSolved ? (gameStats.levelsSolved / gameData.levels.length) * 100 : 0;
+        const mazeStats = storage.get(`gameStats_1`, { levelsSolved: 0, timesPlayed: 0, bestTime: null });
+        const mazeSolvePercentage = mazeStats.levelsSolved ? (mazeStats.levelsSolved / gameData.levels.length) * 100 : 0;
+        
+        const wordleStats = storage.get(`gameStats_wordle`, { gamesPlayed: 0, gamesWon: 0, currentStreak: 0, maxStreak: 0 });
+        const wordleWinPercentage = wordleStats.gamesPlayed > 0 ? (wordleStats.gamesWon / wordleStats.gamesPlayed) * 100 : 0;
 
         this.render(`
             <div class="container">
                 <div class="home-header">
-                    <h1>🎮 Word Maze</h1>
+                    <h1>🎮 Word Games</h1>
                     <div class="user-info">
                         <div class="user-avatar">${this.userName.charAt(0).toUpperCase()}</div>
                         <div>
@@ -177,16 +273,29 @@ class WordMazeApp {
                 </div>
 
                 <div class="games-grid">
-                    <div class="card game-card" data-action="startGame" data-param="1">
+                    <div class="card game-card" data-action="startGame" data-param="wordmaze">
                         <div class="game-icon">🧩</div>
                         <h3>Word Maze</h3>
                         <p>Connect related words through a 5×10 grid</p>
                         <div class="game-progress">
-                            <div class="game-progress-bar" style="width: ${solvePercentage}%"></div>
+                            <div class="game-progress-bar" style="width: ${mazeSolvePercentage}%"></div>
                         </div>
                         <div class="game-stats">
-                            <span>📊 ${gameStats.levelsSolved}/${gameData.levels.length} levels</span>
-                            <span>🎯 ${gameStats.timesPlayed} plays</span>
+                            <span>📊 ${mazeStats.levelsSolved}/${gameData.levels.length} levels</span>
+                            <span>🎯 ${mazeStats.timesPlayed} plays</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card game-card" data-action="startGame" data-param="wordle">
+                        <div class="game-icon">🟩</div>
+                        <h3>Wordle</h3>
+                        <p>Guess the word in 6 tries</p>
+                        <div class="game-progress">
+                            <div class="game-progress-bar" style="width: ${wordleWinPercentage}%"></div>
+                        </div>
+                        <div class="game-stats">
+                            <span>🎯 ${wordleStats.gamesWon}/${wordleStats.gamesPlayed} wins</span>
+                            <span>🔥 ${wordleStats.currentStreak} streak</span>
                         </div>
                     </div>
                 </div>
@@ -225,11 +334,18 @@ class WordMazeApp {
     }
 
     startGame(gameId) {
-        this.currentGame = gameData.levels[0]; // Load first level for now
-        this.currentLevel = 1;
-        this.selectedPath = [];
-        this.lastIncorrectPath = null;
-        this.showGame();
+        if (gameId === 'wordmaze') {
+            this.currentGameType = 'wordmaze';
+            this.currentGame = gameData.levels[0];
+            this.currentLevel = 1;
+            this.selectedPath = [];
+            this.lastIncorrectPath = null;
+            this.showGame();
+        } else if (gameId === 'wordle') {
+            this.currentGameType = 'wordle';
+            this.wordleGame = new WordleGame();
+            this.showWordleGame();
+        }
     }
 
     showGame() {
@@ -453,6 +569,258 @@ class WordMazeApp {
         }
     }
 
+    showWordleGame() {
+        this.currentScreen = 'wordle-game';
+        const game = this.wordleGame;
+        
+        // Only calculate keyboard status from submitted (valid) guesses that are in the word list
+        const validatedGuesses = game.guesses.filter(g => g && g.length === 5 && wordleData.isValidWord(g));
+        const keyboardStatus = {};
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        
+        // Initialize all letters as unused
+        alphabet.forEach(letter => {
+            keyboardStatus[letter] = 'unused';
+        });
+        
+        // Only update keyboard based on valid submitted guesses
+        validatedGuesses.forEach(guess => {
+            guess.split('').forEach((letter, index) => {
+                const currentStatus = game.getLetterStatus(guess, index);
+                if (currentStatus === 'correct') {
+                    keyboardStatus[letter] = 'correct';
+                } else if (currentStatus === 'present' && keyboardStatus[letter] !== 'correct') {
+                    keyboardStatus[letter] = 'present';
+                } else if (keyboardStatus[letter] === 'unused') {
+                    keyboardStatus[letter] = 'absent';
+                }
+            });
+        });
+
+        let guessesHtml = '';
+        for (let i = 0; i < 6; i++) {
+            const guess = game.guesses[i];
+            // Only show guesses that are complete (5 letters)
+            const isComplete = guess && guess.length === 5;
+            const guessClass = isComplete ? 'filled' : i === game.guesses.length ? 'current' : '';
+            guessesHtml += '<div class="wordle-guess ' + guessClass + '">';
+            
+            for (let j = 0; j < 5; j++) {
+                const letter = guess && j < guess.length ? guess[j] : '';
+                let tileClass = 'wordle-tile';
+                
+                // Only show color status for submitted valid guesses (not current guess being typed)
+                if (letter && isComplete && i < game.guesses.length - 1) {
+                    const status = game.getLetterStatus(guess, j);
+                    tileClass += ' ' + status;
+                }
+                
+                guessesHtml += `<div class="${tileClass}">${letter}</div>`;
+            }
+            guessesHtml += '</div>';
+        }
+
+        const keyboardRows = [
+            ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+            ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+            ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+        ];
+
+        let keyboardHtml = '<div class="wordle-keyboard">';
+        keyboardRows.forEach(row => {
+            keyboardHtml += '<div class="wordle-keyboard-row">';
+            row.forEach(letter => {
+                const status = keyboardStatus[letter] || 'unused';
+                keyboardHtml += `<button class="wordle-key ${status}" data-action="handleWordleKey" data-param="${letter}">${letter}</button>`;
+            });
+            keyboardHtml += '</div>';
+        });
+        keyboardHtml += `<div class="wordle-keyboard-row">
+            <button class="wordle-key wordle-special-key" data-action="handleWordleKey" data-param="Backspace">⌫</button>
+            <button class="wordle-key wordle-special-key" data-action="handleWordleKey" data-param="Enter" ${game.gameOver || (game.guesses.length > 0 && game.guesses[game.guesses.length - 1]?.length === 5) ? '' : 'disabled'}>Enter</button>
+        </div></div>`;
+
+        this.render(`
+            <div class="wordle-page">
+                <div class="wordle-header">
+                    <button class="wordle-back-btn" data-action="goHome">← Back</button>
+                    <h1 class="wordle-title">WORDLE</h1>
+                    <div class="wordle-header-spacer"></div>
+                </div>
+
+                <div id="wordle-error-message" class="wordle-error-message" style="display: none;"></div>
+
+                <div class="wordle-card">
+                    <div class="wordle-board">
+                        ${guessesHtml}
+                    </div>
+
+                    ${keyboardHtml}
+                </div>
+
+                ${game.gameOver ? `
+                    <div class="wordle-result ${game.won ? 'won' : 'lost'}">
+                        <div class="wordle-result-content">
+                            <h3>${game.won ? '🎉 You Won!' : '💔 Game Over'}</h3>
+                            <p>${game.won ? 'The word was: ' + game.word : 'The word was: ' + game.word}</p>
+                            <div class="wordle-result-buttons">
+                                <button class="button button-primary" data-action="newWordleGame">Play Again</button>
+                                <button class="button button-secondary" data-action="goHome">Home</button>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `);
+
+        // Focus on keyboard for real keyboard input
+        this.setupWordleKeyboard();
+    }
+
+    setupWordleKeyboard() {
+        document.addEventListener('keydown', (e) => {
+            if (this.currentScreen !== 'wordle-game' || this.wordleGame.gameOver) return;
+
+            const key = e.key.toUpperCase();
+            
+            if (/^[A-Z]$/.test(key)) {
+                this.addWordleLetter(key);
+                e.preventDefault();
+            } else if (key === 'BACKSPACE') {
+                this.removeWordleLetter();
+                e.preventDefault();
+            } else if (key === 'ENTER') {
+                this.submitWordleGuess();
+                e.preventDefault();
+            }
+        });
+    }
+
+    addWordleLetter(letter) {
+        const game = this.wordleGame;
+        if (game.gameOver) return;
+
+        // If no guesses yet, start a new one
+        if (game.guesses.length === 0) {
+            game.guesses.push(letter);
+        } else {
+            const currentGuess = game.guesses[game.guesses.length - 1];
+            
+            // If current guess is complete (5 letters), start a new one
+            if (currentGuess.length === 5) {
+                game.guesses.push(letter);
+            } else {
+                // Add to current guess
+                game.guesses[game.guesses.length - 1] = currentGuess + letter;
+            }
+        }
+
+        this.showWordleGame();
+    }
+
+    removeWordleLetter() {
+        const game = this.wordleGame;
+        if (game.gameOver || !game.guesses.length) return;
+
+        const lastGuess = game.guesses[game.guesses.length - 1];
+        if (lastGuess.length > 0) {
+            game.guesses[game.guesses.length - 1] = lastGuess.slice(0, -1);
+        } else if (game.guesses.length > 1) {
+            game.guesses.pop();
+        }
+
+        this.showWordleGame();
+    }
+
+    handleWordleKey(param) {
+        if (param === 'Backspace') {
+            this.removeWordleLetter();
+        } else if (param === 'Enter') {
+            this.submitWordleGuess();
+        } else {
+            this.addWordleLetter(param);
+        }
+    }
+
+    submitWordleGuess() {
+        const game = this.wordleGame;
+        
+        // Safety checks
+        if (game.gameOver) {
+            return;
+        }
+        
+        if (!game.guesses.length) {
+            this.showWordleGame();
+            this.showWordleError('Please type a word first!');
+            return;
+        }
+
+        const currentGuess = game.guesses[game.guesses.length - 1];
+        
+        // Check if word is complete
+        if (!currentGuess || currentGuess.length !== 5) {
+            this.showWordleGame();
+            this.showWordleError('Word must be 5 letters!');
+            return;
+        }
+
+        const wordToCheck = currentGuess.toUpperCase();
+        // Check if word is valid
+        if (!wordleData.isValidWord(wordToCheck)) {
+            // Clear the invalid word WITHOUT adding a new guess
+            game.guesses.pop();
+            this.showWordleGame();
+            this.showWordleError('Not in word list!');
+            return;
+        }
+
+        // Make the guess
+        const success = game.makeGuess(wordToCheck);
+        
+        if (!success) {
+            this.showWordleGame();
+            this.showWordleError('Error submitting word. Please try again.');
+            return;
+        }
+        
+        // Save stats
+        const stats = storage.get('gameStats_wordle', { gamesPlayed: 0, gamesWon: 0, currentStreak: 0, maxStreak: 0 });
+        stats.gamesPlayed++;
+        
+        if (game.won) {
+            stats.gamesWon++;
+            stats.currentStreak++;
+            stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
+        } else if (game.gameOver) {
+            stats.currentStreak = 0;
+        }
+        
+        storage.set('gameStats_wordle', stats);
+        this.showWordleGame();
+    }
+
+    showWordleError(message) {
+        // Show error message in UI
+        setTimeout(() => {
+            const errorEl = document.getElementById('wordle-error-message');
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
+                
+                // Hide error after 2 seconds
+                setTimeout(() => {
+                    errorEl.style.display = 'none';
+                }, 2000);
+            }
+        }, 0);
+    }
+
+    newWordleGame() {
+        this.wordleGame = new WordleGame();
+        this.showWordleGame();
+    }
+
     goHome() {
         this.showHome();
     }
@@ -510,5 +878,5 @@ class WordMazeApp {
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    new WordMazeApp();
+    new GameApp();
 });

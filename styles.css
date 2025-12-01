@@ -700,3 +700,348 @@ input[type="email"]:focus {
 .install-prompt button:hover {
     background-color: rgba(255, 255, 255, 0.3);
 }
+
+/* Wordle Game Styles */
+.wordle-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+    padding: 20px 0;
+}
+
+.wordle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.wordle-title {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    margin: 0;
+}
+
+.wordle-back-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 8px 12px;
+    color: var(--primary);
+    font-weight: 600;
+    transition: var(--transition);
+    border-radius: 4px;
+}
+
+.wordle-back-btn:hover {
+    background-color: rgba(99, 102, 241, 0.1);
+    color: var(--primary-dark);
+}
+
+.wordle-header-spacer {
+    width: 80px;
+}
+
+.wordle-header-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    color: var(--text-primary);
+}
+
+.wordle-header-btn:hover {
+    opacity: 0.7;
+}
+
+.wordle-error-message {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #d32f2f;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.wordle-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.wordle-board {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+.wordle-guess {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    justify-content: center;
+}
+
+.wordle-tile {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #d3d3d3;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    transition: all 0.2s ease;
+}
+
+.wordle-tile.correct {
+    background-color: #6aaa64;
+    border-color: #6aaa64;
+    color: white;
+}
+
+.wordle-tile.present {
+    background-color: #c9b458;
+    border-color: #c9b458;
+    color: white;
+}
+
+.wordle-tile.absent {
+    background-color: #787c7e;
+    border-color: #787c7e;
+    color: white;
+}
+
+/* Wordle Keyboard */
+.wordle-keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.wordle-keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.wordle-key {
+    padding: 10px;
+    min-width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 4px;
+    background-color: #d3d3d3;
+    color: #1a1a1a;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+    font-family: inherit;
+}
+
+.wordle-key:hover:not(:disabled) {
+    background-color: #bbb;
+}
+
+.wordle-key.correct {
+    background-color: #6aaa64;
+    color: white;
+}
+
+.wordle-key.present {
+    background-color: #c9b458;
+    color: white;
+}
+
+.wordle-key.absent {
+    background-color: #787c7e;
+    color: white;
+}
+
+.wordle-key.unused {
+    background-color: #d3d3d3;
+    color: #1a1a1a;
+}
+
+.wordle-special-key {
+    min-width: 50px;
+}
+
+.wordle-key:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.wordle-result {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+    border: 1px solid #ddd;
+    max-width: 90%;
+}
+
+.wordle-result-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.wordle-result h3 {
+    font-size: 32px;
+    margin-bottom: 16px;
+    margin-top: 0;
+}
+
+.wordle-result p {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    font-size: 16px;
+}
+
+.wordle-result-buttons {
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
+    width: 100%;
+}
+
+.wordle-result.won {
+    border-color: #6aaa64;
+}
+
+.wordle-result.lost {
+    border-color: #787c7e;
+}
+
+.wordle-result .button {
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .wordle-page {
+        padding: 12px 0;
+    }
+
+    .wordle-header {
+        padding: 12px 16px;
+    }
+
+    .wordle-title {
+        font-size: 24px;
+        letter-spacing: 2px;
+    }
+
+    .wordle-card {
+        padding: 30px 12px;
+    }
+
+    .wordle-tile {
+        width: 50px;
+        height: 50px;
+        font-size: 28px;
+        gap: 8px;
+    }
+
+    .wordle-guess {
+        gap: 8px;
+    }
+
+    .wordle-board {
+        margin-bottom: 30px;
+    }
+
+    .wordle-key {
+        padding: 8px;
+        min-width: 35px;
+        height: 38px;
+        font-size: 11px;
+    }
+
+    .wordle-special-key {
+        min-width: 45px;
+    }
+
+    .wordle-result {
+        padding: 30px 20px;
+        width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .wordle-tile {
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+        border-width: 1px;
+    }
+
+    .wordle-guess {
+        gap: 3px;
+    }
+
+    .wordle-key {
+        padding: 6px 3px;
+        min-width: 28px;
+        height: 36px;
+        font-size: 10px;
+    }
+
+    .wordle-special-key {
+        min-width: 40px;
+    }
+
+    .wordle-result {
+        padding: 24px 16px;
+        width: 90%;
+    }
+
+    .wordle-result h3 {
+        font-size: 22px;
+    }
+}
