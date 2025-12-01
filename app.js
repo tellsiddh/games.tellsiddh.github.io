@@ -3,6 +3,7 @@ class WordleGame {
     constructor() {
         this.word = wordleData.getDailyWord();
         this.guesses = [];
+        this.currentInput = ''; // Track current word being typed, separate from submitted guesses
         this.gameOver = false;
         this.won = false;
     }
@@ -19,6 +20,7 @@ class WordleGame {
         }
 
         this.guesses.push(guess);
+        this.currentInput = ''; // Clear current input after successful guess
 
         if (guess === this.word) {
             this.gameOver = true;
@@ -600,17 +602,20 @@ class GameApp {
         let guessesHtml = '';
         for (let i = 0; i < 6; i++) {
             const guess = game.guesses[i];
-            // Only show guesses that are complete (5 letters)
-            const isComplete = guess && guess.length === 5;
-            const guessClass = isComplete ? 'filled' : i === game.guesses.length ? 'current' : '';
+            // Current row is the one after all submitted guesses
+            const isCurrentRow = i === game.guesses.length;
+            // Show the current input text for the current row
+            const displayText = isCurrentRow ? game.currentInput : guess;
+            const isComplete = displayText && displayText.length === 5;
+            const guessClass = isComplete ? 'filled' : isCurrentRow ? 'current' : '';
             guessesHtml += '<div class="wordle-guess ' + guessClass + '">';
             
             for (let j = 0; j < 5; j++) {
-                const letter = guess && j < guess.length ? guess[j] : '';
+                const letter = displayText && j < displayText.length ? displayText[j] : '';
                 let tileClass = 'wordle-tile';
                 
-                // Only show color status for submitted valid guesses (not current guess being typed)
-                if (letter && isComplete && i < game.guesses.length - 1) {
+                // Only show color status for submitted guesses (not current input being typed)
+                if (letter && !isCurrentRow && i < game.guesses.length) {
                     const status = game.getLetterStatus(guess, j);
                     tileClass += ' ' + status;
                 }
@@ -700,19 +705,9 @@ class GameApp {
         const game = this.wordleGame;
         if (game.gameOver) return;
 
-        // If no guesses yet, start a new one
-        if (game.guesses.length === 0) {
-            game.guesses.push(letter);
-        } else {
-            const currentGuess = game.guesses[game.guesses.length - 1];
-            
-            // If current guess is complete (5 letters), start a new one
-            if (currentGuess.length === 5) {
-                game.guesses.push(letter);
-            } else {
-                // Add to current guess
-                game.guesses[game.guesses.length - 1] = currentGuess + letter;
-            }
+        // Simply add to current input string
+        if (game.currentInput.length < 5) {
+            game.currentInput += letter;
         }
 
         this.showWordleGame();
@@ -720,13 +715,11 @@ class GameApp {
 
     removeWordleLetter() {
         const game = this.wordleGame;
-        if (game.gameOver || !game.guesses.length) return;
+        if (game.gameOver) return;
 
-        const lastGuess = game.guesses[game.guesses.length - 1];
-        if (lastGuess.length > 0) {
-            game.guesses[game.guesses.length - 1] = lastGuess.slice(0, -1);
-        } else if (game.guesses.length > 1) {
-            game.guesses.pop();
+        // Remove last character from current input
+        if (game.currentInput.length > 0) {
+            game.currentInput = game.currentInput.slice(0, -1);
         }
 
         this.showWordleGame();
@@ -750,26 +743,25 @@ class GameApp {
             return;
         }
         
-        if (!game.guesses.length) {
+        if (!game.currentInput) {
             this.showWordleGame();
             this.showWordleError('Please type a word first!');
             return;
         }
 
-        const currentGuess = game.guesses[game.guesses.length - 1];
-        
         // Check if word is complete
-        if (!currentGuess || currentGuess.length !== 5) {
+        if (game.currentInput.length !== 5) {
             this.showWordleGame();
             this.showWordleError('Word must be 5 letters!');
             return;
         }
 
-        const wordToCheck = currentGuess.toUpperCase();
+        const wordToCheck = game.currentInput.toUpperCase();
+        
         // Check if word is valid
         if (!wordleData.isValidWord(wordToCheck)) {
-            // Clear the invalid word WITHOUT adding a new guess
-            game.guesses.pop();
+            // Clear current input to let user retype
+            game.currentInput = '';
             this.showWordleGame();
             this.showWordleError('Not in word list!');
             return;
